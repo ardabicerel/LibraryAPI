@@ -1,0 +1,16 @@
+# Derleme ve Çalışma Zamanı Çıktıları
+bin/
+obj/
+
+# SQLite Veritabanı Dosyaları
+*.db
+*.db-shm
+*.db-wal
+
+# Geliştirici Ortamı (IDE/Editör) Dosyaları
+.vscode/
+*.user
+
+# İşletim Sistemi Kalıntıları
+.DS_Store
+Thumbs.db

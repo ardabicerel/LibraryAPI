@@ -25,6 +25,30 @@ namespace KutuphaneAPI.Controllers
             return Ok(kitaplar); // 200 OK durum kodu ile JSON olarak döndürür.
         }
 
+        [HttpGet("arama")]
+        public IActionResult KitapAra([FromQuery] string yazar)
+        {
+            // Eğer yazar parametresi boş gönderildiyse 400 Bad Request döndür
+            if (string.IsNullOrWhiteSpace(yazar))
+            {
+                return BadRequest("Lütfen aramak için bir yazar adı girin.");
+            }
+
+            // Veritabanında yazar adını içeren kitapları filtrele
+            var bulunanKitaplar = _context.Kitaplar
+                .Where(k => k.Yazar.Contains(yazar))
+                .ToList();
+
+            // Eğer kritere uyan kitap bulunamadıysa 404 Not Found döndür
+            if (bulunanKitaplar.Count == 0)
+            {
+                return NotFound("Bu yazara ait kitap bulunamadı.");
+            }
+
+            // Bulunan kitapları 200 OK ile JSON olarak döndür
+            return Ok(bulunanKitaplar);
+        }
+
         // 2. YENİ KİTAP EKLEME (POST)
         [HttpPost]
         public IActionResult PostKitap(Kitap kitap)
@@ -47,6 +71,28 @@ namespace KutuphaneAPI.Controllers
             _context.Kitaplar.Remove(kitap);
             _context.SaveChanges();
             return NoContent(); // Başarıyla silindiğinde 204 No Content döndürür.
+        }
+
+        [HttpDelete("hepsini-sil")]
+        public IActionResult TumKitaplariSil()
+        {
+            // Veritabanındaki tüm kitapları çekiyoruz
+            var tumKitaplar = _context.Kitaplar.ToList();
+
+            // Eğer tablo zaten boşsa işlem yapmaya gerek yok
+            if (tumKitaplar.Count == 0)
+            {
+                return NotFound("Veritabanında silinecek kitap bulunmamaktadır.");
+            }
+
+            // Entity Framework'ün RemoveRange metodu ile listeyi topluca siliyoruz
+            _context.Kitaplar.RemoveRange(tumKitaplar);
+            
+            // Değişiklikleri veritabanına kaydediyoruz
+            _context.SaveChanges();
+
+            // Başarılı işlem sonucu 204 döndürüyoruz
+            return NoContent();
         }
 
         [HttpPut("{id}")]

@@ -10,5 +10,6 @@ namespace KutuphaneAPI.Data
         }
 
         public DbSet<Kitap> Kitaplar {get; set;}
+        public DbSet<Yazar> Yazarlar {get; set;}
     }
 }

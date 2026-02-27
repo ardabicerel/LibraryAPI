@@ -22,31 +22,32 @@ namespace KutuphaneAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetKitaplar()
         {
-            var kitaplar = await _context.Kitaplar.ToListAsync();
-            return Ok(kitaplar); // 200 OK durum kodu ile JSON olarak döndürür.
+            // Include metodu ile Kitaplar tablosuna Yazarlar tablosunu bağlıyoruz
+            var kitaplar = await _context.Kitaplar
+                .Include(k => k.YazarBilgisi)
+                .ToListAsync();
+                
+            return Ok(kitaplar);
         }
 
         [HttpGet("arama")]
         public async Task<IActionResult> KitapAra([FromQuery] string yazar)
         {
-            // Eğer yazar parametresi boş gönderildiyse 400 Bad Request döndür
             if (string.IsNullOrWhiteSpace(yazar))
             {
                 return BadRequest("Lütfen aramak için bir yazar adı girin.");
             }
 
-            // Veritabanında yazar adını içeren kitapları filtrele
             var bulunanKitaplar = await _context.Kitaplar
-                .Where(k => k.Yazar.Contains(yazar))
+                .Include(k => k.YazarBilgisi) // Arama sonucunda yazar bilgisinin de dönmesi için ekledik
+                .Where(k => k.YazarBilgisi != null & k.YazarBilgisi.AdSoyad.Contains(yazar))
                 .ToListAsync();
 
-            // Eğer kritere uyan kitap bulunamadıysa 404 Not Found döndür
             if (bulunanKitaplar.Count == 0)
             {
                 return NotFound("Bu yazara ait kitap bulunamadı.");
             }
 
-            // Bulunan kitapları 200 OK ile JSON olarak döndür
             return Ok(bulunanKitaplar);
         }
 
@@ -108,7 +109,7 @@ namespace KutuphaneAPI.Controllers
 
             // Yeni gelen verileri, mevcut kitabın üzerine yazıyoruz
             mevcutKitap.KitapAdi = guncelKitap.KitapAdi;
-            mevcutKitap.Yazar = guncelKitap.Yazar;
+            mevcutKitap.YazarId = guncelKitap.YazarId;
             mevcutKitap.YayinYili = guncelKitap.YayinYili;
 
             // Değişiklikleri fiziksel veritabanına kaydediyoruz

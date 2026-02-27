@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KutuphaneAPI.Migrations
 {
     [DbContext(typeof(KutuphaneContext))]
-    [Migration("20260225223419_IlkKurulum")]
+    [Migration("20260226232548_IlkKurulum")]
     partial class IlkKurulum
     {
         /// <inheritdoc />
@@ -32,13 +32,45 @@ namespace KutuphaneAPI.Migrations
                     b.Property<int>("YayinYili")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Yazar")
+                    b.Property<int>("YazarId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("YazarId");
+
+                    b.ToTable("Kitaplar");
+                });
+
+            modelBuilder.Entity("KutuphaneAPI.Models.Yazar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdSoyad")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kitaplar");
+                    b.ToTable("Yazar");
+                });
+
+            modelBuilder.Entity("KutuphaneAPI.Models.Kitap", b =>
+                {
+                    b.HasOne("KutuphaneAPI.Models.Yazar", "YazarBilgisi")
+                        .WithMany("Kitaplar")
+                        .HasForeignKey("YazarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("YazarBilgisi");
+                });
+
+            modelBuilder.Entity("KutuphaneAPI.Models.Yazar", b =>
+                {
+                    b.Navigation("Kitaplar");
                 });
 #pragma warning restore 612, 618
         }

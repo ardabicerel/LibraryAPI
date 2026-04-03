@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using KutuphaneAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using KutuphaneAPI.Models;
+using KutuphaneAPI.DTOs;
 
 namespace KutuphaneAPI.Controllers
 {
@@ -25,6 +26,13 @@ namespace KutuphaneAPI.Controllers
             // Include metodu ile Kitaplar tablosuna Yazarlar tablosunu bağlıyoruz
             var kitaplar = await _context.Kitaplar
                 .Include(k => k.YazarBilgisi)
+                .Select(k => new KitapCiktiDTO
+                {
+                    kitapID = k.Id,
+                    yayinYili = k.YayinYili,
+                    kitapAdi = k.KitapAdi,
+                    yazarAdi = k.YazarBilgisi.AdSoyad
+                })
                 .ToListAsync();
                 
             return Ok(kitaplar);
@@ -53,11 +61,20 @@ namespace KutuphaneAPI.Controllers
 
         // 2. YENİ KİTAP EKLEME (POST)
         [HttpPost]
-        public async Task<IActionResult> PostKitap(Kitap kitap)
+        public async Task<IActionResult> PostKitap(KitapGirdiDTO yeniKitapDTO)
         {
-            await _context.Kitaplar.AddAsync(kitap);
-            await _context.SaveChangesAsync(); // Değişiklikleri fiziksel veri tabanına işler.
-            return Ok(kitap);
+            var eklenecekKitap = new Kitap
+            {
+                KitapAdi = yeniKitapDTO.kitapAdi,
+                YayinYili = yeniKitapDTO.yayinYili,
+                YazarId = yeniKitapDTO.yazarID
+            };
+
+            await _context.Kitaplar.AddAsync(eklenecekKitap);
+            
+            await _context.SaveChangesAsync();
+            
+            return Ok(eklenecekKitap);
         }
 
         // 3. KİTAP SİLME (DELETE)
